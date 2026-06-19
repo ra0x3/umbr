@@ -1,6 +1,14 @@
-# Project data (not shipped)
+# Project data (not shipped). The full 97-min coffee.mp3 lives under assets/ and
+# is too large to commit; the harness uses the small zipped clip in
+# tests/fixtures/ instead.
 assets/
 artifacts/
+
+# Harness scratch: extracted fixture audio and per-run render outputs. The
+# committed clip (*.mp3.zip) is kept; loose mp3/wav under fixtures are not.
+tests/fixtures/*.mp3
+tests/fixtures/*.wav
+!tests/fixtures/*.mp3.zip
 
 # Python build / packaging
 dist/

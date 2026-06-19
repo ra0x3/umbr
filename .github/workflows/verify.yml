@@ -1,0 +1,61 @@
+name: verify
+
+# Runs the statistical verification harness so the divergence/robustness
+# numbers in the audit are reproduced on a clean machine, not just locally.
+#
+# The two external binaries the harness leans on are installed here exactly as
+# they are locally (Homebrew on macOS, apt on Linux):
+#   * ffmpeg / ffprobe -- decode + codec round-trips (Leg 1 robustness)
+#   * fpcalc (Chromaprint) -- the independent fingerprinter cross-check (Leg 3)
+# Without fpcalc the harness still runs and reports Leg 3 as unavailable, so CI
+# does not hard-fail on its absence; we install it so Leg 3 actually executes.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install audio toolchain (ffmpeg + Chromaprint)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg libchromaprint-tools
+          ffmpeg -version | head -1
+          fpcalc -version
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest
+
+      - name: Unit-check the statistical machinery
+        run: pytest tests/verification_harness.py -v
+
+      - name: Run statistical verification harness
+        # Uses the bundled zipped coffee clip (the full track is not committed).
+        # A short probe keeps CI fast; the method is identical at full length.
+        # ABX is omitted in CI -- it requires human listeners by design.
+        run: |
+          python tests/verification_harness.py \
+            --limit-seconds 30 \
+            --null-samples 200 \
+            --codec-null-samples 40 \
+            --report artifacts/umbr_statistics.json
+
+      - name: Upload statistics report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: umbr-statistics
+          path: artifacts/umbr_statistics.json
