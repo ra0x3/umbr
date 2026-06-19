@@ -1,0 +1,86 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "umbr"
+version = "0.1.0"
+description = "Sub-audible STFT-domain audio perturbation research console."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "ra0x3", email = "ractz@pm.me" }]
+keywords = [
+    "audio",
+    "psychoacoustics",
+    "stft",
+    "perturbation",
+    "robustness",
+    "research",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Sound/Audio :: Analysis",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "numpy>=2.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/ra0x3/umbr"
+Documentation = "https://github.com/ra0x3/umbr#readme"
+Repository = "https://github.com/ra0x3/umbr"
+
+[project.scripts]
+umbr = "umbr:cli"
+
+[tool.setuptools]
+py-modules = ["umbr"]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.0",
+    "pylint>=3.0",
+    "build>=1.0",
+    "twine>=5.0",
+]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+
+[tool.pylint.format]
+max-line-length = 100
+
+[tool.pylint.design]
+# Metrics is a plain whole-render data record whose fields are inherent to the
+# audit it serializes; splitting it would obscure rather than clarify.
+max-attributes = 24
+# The DSP/metrics functions carry a handful of named intermediate arrays
+# (spectra, features, displacements) whose names document the math; inlining
+# them to satisfy the default 20 would hurt readability, not help it.
+max-locals = 25
+
+[tool.pylint.main]
+# The project is intentionally a single, fully documented module per the
+# design brief; the line count reflects that choice, not tangled code.
+max-module-lines = 1500
+
+[tool.pylint."messages control"]
+# Suppressed false positives only:
+#   no-member        -- pylint cannot infer that ``wave.open(path, "wb")``
+#                       returns a Wave_write (it assumes Wave_read), so every
+#                       set*/writeframes call is mis-flagged.
+#   too-many-* args  -- StftConfig/LatticeContext already bundle the shared
+#                       parameters; the few remaining wide signatures pass a
+#                       config plus distinct, non-groupable values and are
+#                       clearer flat than wrapped in yet another record.
+disable = [
+    "no-member",
+    "too-many-arguments",
+    "too-many-positional-arguments",
+]

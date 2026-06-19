@@ -1,0 +1,19 @@
+# Project data (not shipped)
+assets/
+artifacts/
+
+# Python build / packaging
+dist/
+build/
+*.egg-info/
+__pycache__/
+*.py[cod]
+
+# Environments
+.venv/
+venv/
+
+# Tooling caches
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
